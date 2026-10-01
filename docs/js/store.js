@@ -1,9 +1,13 @@
 import { uid } from './util.js';
-import { SEED_DECKS } from './seeds.js';
+import { SEED_DECKS, SEED_VERSION } from './seeds.js';
 
 const DECKS_KEY = 'czolko.decks';
 const SETTINGS_KEY = 'czolko.settings';
 const SEEDED_KEY = 'czolko.seeded';
+const SEED_VERSION_KEY = 'czolko.seedVersion';
+const USED_KEY = 'czolko.used';
+
+const LEGACY_SEED_NAMES = ['Zwierzęta', 'Filmy i seriale', 'Zawody', 'Jedzenie', 'Pokaż to!', 'Sławne osoby'];
 
 const DEFAULT_SETTINGS = { roundSeconds: 60, sounds: true };
 
@@ -25,13 +29,17 @@ export const playable = (deck) => deck.phrases.map((p) => p.trim()).filter(Boole
 export const store = {
   decks: [],
   settings: { ...DEFAULT_SETTINGS },
+  used: {},
 
   load() {
     this.decks = read(DECKS_KEY, []);
     this.settings = { ...DEFAULT_SETTINGS, ...read(SETTINGS_KEY, {}) };
-    if (!read(SEEDED_KEY, false)) {
+    this.used = read(USED_KEY, {});
+    const version = read(SEED_VERSION_KEY, read(SEEDED_KEY, false) ? 1 : 0);
+    if (version < SEED_VERSION) {
+      if (version === 1) this.decks = this.decks.filter((d) => !LEGACY_SEED_NAMES.includes(d.name));
       this.restoreSeeds();
-      write(SEEDED_KEY, true);
+      write(SEED_VERSION_KEY, SEED_VERSION);
     }
   },
 
@@ -56,6 +64,8 @@ export const store = {
 
   deleteDeck(id) {
     this.decks = this.decks.filter((d) => d.id !== id);
+    delete this.used[id];
+    write(USED_KEY, this.used);
     this.saveDecks();
   },
 
@@ -65,6 +75,20 @@ export const store = {
   },
 
   restoreSeeds() {
+    const names = SEED_DECKS.map((d) => d.name);
+    this.decks = this.decks.filter((d) => !names.includes(d.name));
     SEED_DECKS.forEach((seed) => this.addDeck(seed));
+  },
+
+  usedPhrases(deck) {
+    const valid = new Set(playable(deck));
+    return (this.used[deck.id] || []).filter((p) => valid.has(p));
+  },
+
+  markUsed(deck, phrases) {
+    if (!phrases.length) return;
+    const recent = new Set(phrases);
+    this.used[deck.id] = [...this.usedPhrases(deck).filter((p) => !recent.has(p)), ...phrases];
+    write(USED_KEY, this.used);
   },
 };

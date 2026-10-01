@@ -3,8 +3,10 @@ import { shuffle } from './util.js';
 const FEEDBACK_MS = 650;
 
 export class Game {
-  constructor({ phrases, roundSeconds, audio, onChange }) {
+  constructor({ phrases, roundSeconds, audio, onChange, buildQueue }) {
     this.all = phrases;
+    this.buildQueue = buildQueue || (() => shuffle(phrases));
+    this.shown = [];
     this.roundSeconds = roundSeconds;
     this.audio = audio;
     this.onChange = onChange;
@@ -21,7 +23,8 @@ export class Game {
   start() {
     this.clearTimers();
     this.results = [];
-    this.queue = shuffle(this.all);
+    this.shown = [];
+    this.queue = this.buildQueue();
     this.timeLeft = this.roundSeconds;
     this.count = 3;
     this.phase = 'countdown';
@@ -68,6 +71,7 @@ export class Game {
       return;
     }
     this.current = phrase;
+    this.shown.push(phrase);
     this.phase = 'playing';
     this.emit();
   }

@@ -2,7 +2,7 @@ import { store, playable } from './store.js';
 import { Game } from './game.js';
 import { TiltDetector } from './motion.js';
 import { Beeper } from './audio.js';
-import { h, phraseCount, lastGrapheme, isStandalone, isIOS } from './util.js';
+import { h, phraseCount, lastGrapheme, isStandalone, isIOS, shuffle } from './util.js';
 
 const app = document.getElementById('app');
 const audio = new Beeper(() => store.settings.sounds);
@@ -274,7 +274,17 @@ function renderGame(deck) {
   const timer = app.querySelector('#timer');
   const exitTo = `#/deck/${deck.id}`;
 
-  const game = new Game({ phrases, roundSeconds: store.settings.roundSeconds, audio, onChange: paint });
+  const buildQueue = () => {
+    const used = store.usedPhrases(deck);
+    const usedSet = new Set(used);
+    const fresh = phrases.filter((p) => !usedSet.has(p));
+    return [...used.reverse(), ...shuffle(fresh)];
+  };
+  const commitShown = () => {
+    store.markUsed(deck, game.shown);
+    game.shown = [];
+  };
+  const game = new Game({ phrases, roundSeconds: store.settings.roundSeconds, audio, buildQueue, onChange: paint });
   const tilt = new TiltDetector((correct) => game.register(correct));
   let tiltActive = false;
   let wakeLock = null;
@@ -287,6 +297,7 @@ function renderGame(deck) {
   window.addEventListener('resize', applyOrientation);
 
   function paint() {
+    if (game.phase === 'finished') commitShown();
     stage.dataset.phase = game.phase;
     stage.dataset.result = game.phase === 'feedback' ? (game.lastCorrect ? 'ok' : 'pass') : '';
     timer.textContent = game.phase === 'ready' || game.phase === 'countdown' || game.phase === 'finished' ? '' : game.timeLeft;
@@ -382,6 +393,7 @@ function renderGame(deck) {
 
   current = {
     destroy() {
+      commitShown();
       game.destroy();
       tilt.stop();
       wakeLock?.release?.();
@@ -412,7 +424,7 @@ function renderSettings() {
         <label class="toggle-row"><span>Dźwięki</span><input type="checkbox" id="sounds" ${s.sounds ? 'checked' : ''}><span class="switch"></span></label>
       </section>
       <section class="card actions">
-        <button class="row-btn" id="restore">${icons.plus}<span>Przywróć przykładowe talie</span></button>
+        <button class="row-btn" id="restore">${icons.plus}<span>Przywróć wbudowane talie</span></button>
       </section>
       <p class="muted small center-text">Dane są tylko na tym telefonie. Wersja 1.0</p>
     </main>`;
@@ -425,7 +437,7 @@ function renderSettings() {
   app.querySelector('#sounds').onchange = (e) => store.updateSettings({ sounds: e.target.checked });
   app.querySelector('#restore').onclick = (e) => {
     store.restoreSeeds();
-    e.currentTarget.querySelector('span').textContent = 'Dodano';
+    e.currentTarget.querySelector('span').textContent = 'Przywrócono';
     e.currentTarget.disabled = true;
   };
   bindNav();

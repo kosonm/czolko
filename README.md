@@ -15,7 +15,7 @@ Dwie wersje w repo:
 4. Na iPhonie otwórz ten adres w Safari → Udostępnij → **Dodaj do ekranu początkowego**.
 5. Przy pierwszym Starcie gry Safari zapyta o dostęp do ruchu i orientacji, zezwól.
 
-Aktualizacja = push na `main`. Przy zmianach plików podbij `CACHE` w `docs/sw.js`, inaczej zainstalowana apka może trzymać starą wersję.
+Aktualizacja = push na `main`. Hasła pokazane w rundzie zapamiętują się per talia (`czolko.used`): kolejna runda najpierw losuje z niepokazanych, potem bierze najdawniej pokazane. Wbudowane talie mają `SEED_VERSION` w `js/seeds.js`; podbicie wymienia je u użytkownika przy następnym otwarciu (własne talie zostają). Przy zmianach plików podbij `CACHE` w `docs/sw.js`, inaczej zainstalowana apka może trzymać starą wersję.
 
 Dowolny inny hosting statyczny z HTTPS też działa (Netlify, Cloudflare Pages): publikujesz katalog `docs/`.
 
