@@ -1,41 +1,46 @@
 # Czółko
 
-Gra "telefon na czole" na iPhone'a. SwiftUI + SwiftData, iOS 17+, wszystko lokalnie, bez backendu.
+Gra "telefon na czole": jedna osoba trzyma telefon na czole, reszta opisuje hasło, przechylenie w dół = trafione, w górę = pas.
 
-## Jak uruchomić na telefonie
+Dwie wersje w repo:
 
-1. Zainstaluj Xcode (App Store, ok. 15 GB) i otwórz go raz, żeby doinstalował komponenty iOS.
-2. Wygeneruj projekt i otwórz:
-   ```
-   brew install xcodegen   # jeśli brak
-   xcodegen generate
-   open Czolko.xcodeproj
-   ```
-3. W Xcode: target `Czolko` -> Signing & Capabilities -> Team: wybierz swoje Apple ID (Personal Team).
-   Jeśli bundle id `pl.mkos.czolko` jest zajęty, zmień go w `project.yml` i wygeneruj ponownie.
-4. Na iPhonie: Ustawienia -> Prywatność i ochrona -> Tryb programisty -> włącz (restart telefonu).
-5. Podłącz telefon kablem, wybierz go jako destination, Cmd+R.
-6. Pierwsze uruchomienie: iPhone -> Ustawienia -> Ogólne -> VPN i zarządzanie urządzeniami -> zaufaj swojemu Apple ID.
+- **`docs/`** – PWA (HTML/JS, bez builda, bez backendu). To jest wersja używana. Działa offline po dodaniu do ekranu początkowego, dane trzymane tylko w telefonie (localStorage).
+- **`ios/`** – natywna wersja SwiftUI, odłożona na przyszłość (wymaga Xcode i Apple ID na Macu). Nigdy nie skompilowana, patrz `ios/README.md`.
 
-Darmowe konto: podpis apki wygasa po 7 dniach, wtedy podłącz telefon i Cmd+R ponownie.
-Płatny Developer Program (99 USD/rok): ważność rok, bez tej zabawy.
+## PWA: jak wrzucić na telefon
 
-## Sterowanie w grze
+1. Wypchnij repo na GitHub (publiczne).
+2. W repo: Settings → Pages → Source: *Deploy from a branch*, Branch: `main`, Folder: `/docs`, Save.
+3. Po minucie apka jest pod `https://<user>.github.io/czolko/`.
+4. Na iPhonie otwórz ten adres w Safari → Udostępnij → **Dodaj do ekranu początkowego**.
+5. Przy pierwszym Starcie gry Safari zapyta o dostęp do ruchu i orientacji, zezwól.
 
-Telefon poziomo na czole, ekranem do drużyny.
+Aktualizacja = push na `main`. Przy zmianach plików podbij `CACHE` w `docs/sw.js`, inaczej zainstalowana apka może trzymać starą wersję.
 
-- przechyl w dół (ekran do podłogi) = trafione
-- przechyl w górę (ekran do sufitu) = pas
-- bez żyroskopu (symulator): dotknij prawą połowę = trafione, lewą = pas
+Dowolny inny hosting statyczny z HTTPS też działa (Netlify, Cloudflare Pages): publikujesz katalog `docs/`.
 
-## Struktura
+## Lokalnie
 
 ```
-Czolko/
-  CzolkoApp.swift        entry, blokada orientacji
-  Models/                Deck (SwiftData), eksport JSON, ustawienia, talie startowe
-  Game/                  TiltDetector (CoreMotion), FeedbackPlayer (dźwięk + haptyka), GameViewModel
-  Views/                 lista talii, edycja talii, gra, podsumowanie, ustawienia
+cd docs && python3 -m http.server 8765
 ```
 
-Talie można eksportować/importować jako JSON (`{"name","emoji","phrases":[...]}`).
+`http://127.0.0.1:8765` – na localhost service worker jest wyłączony, żeby nie cache'ować w trakcie zmian. Bez żyroskopu: strzałki ↓/↑ na klawiaturze albo tap w prawą/lewą połowę ekranu.
+
+## Struktura `docs/`
+
+```
+index.html            szkielet, meta PWA
+manifest.webmanifest  nazwa, ikony, standalone
+sw.js                 cache app shell (offline)
+css/app.css           style, dark mode, ekran gry + tryb obrócony
+js/app.js             router (#/, #/deck/:id, #/play/:id, #/settings) i widoki
+js/store.js           localStorage: talie, ustawienia, seed przy pierwszym uruchomieniu
+js/seeds.js           talie startowe
+js/game.js            maszyna stanów rundy
+js/motion.js          deviceorientation → trafione/pas
+js/audio.js           dźwięki z Web Audio (bez plików)
+js/util.js            helpery
+```
+
+Eksport/import talii: JSON `{"name","emoji","phrases":[...]}`.

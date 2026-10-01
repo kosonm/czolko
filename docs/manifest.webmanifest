@@ -1,0 +1,16 @@
+{
+  "name": "Czółko",
+  "short_name": "Czółko",
+  "description": "Gra w zgadywanie haseł z telefonem na czole",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#6140d9",
+  "theme_color": "#6140d9",
+  "lang": "pl",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
