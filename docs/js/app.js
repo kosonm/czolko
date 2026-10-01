@@ -256,7 +256,7 @@ async function exportDeck(deck) {
 /* ---------- game ---------- */
 
 function renderGame(deck) {
-  const phrases = playable(deck);
+  let phrases = playable(deck);
   if (phrases.length < 3) return navigate(`#/deck/${deck.id}`);
   app.className = 'in-game';
 
@@ -337,6 +337,9 @@ function renderGame(deck) {
         center.innerHTML = summary();
         center.querySelector('#again').onclick = startRound;
         center.querySelector('#finish').onclick = () => navigate(exitTo);
+        center.querySelectorAll('[data-remove]').forEach((btn) => {
+          btn.onclick = () => toggleRemoved(btn.closest('li'), game.results[+btn.dataset.remove].phrase);
+        });
         break;
     }
   }
@@ -354,10 +357,29 @@ function renderGame(deck) {
             <button class="ghost-btn" id="finish">Zakończ</button>
           </div>
         </div>
-        <ul class="results">
-          ${game.results.map((r) => `<li class="${r.correct ? 'ok' : 'pass'}">${r.correct ? icons.check : icons.close}<span>${h(r.phrase)}</span></li>`).join('')}
-        </ul>
+        <div class="results-col">
+          <p class="tiny results-hint">Słabe hasło? Kosz usuwa je z talii.</p>
+          <ul class="results">
+            ${game.results.map((r, i) => `
+              <li class="${r.correct ? 'ok' : 'pass'}">
+                ${r.correct ? icons.check : icons.close}
+                <span>${h(r.phrase)}</span>
+                <button class="remove-btn" data-remove="${i}" aria-label="Usuń z talii">${icons.trash}</button>
+                <button class="undo-btn" data-remove="${i}">Cofnij</button>
+              </li>`).join('')}
+          </ul>
+        </div>
       </div>`;
+  }
+
+  function toggleRemoved(li, phrase) {
+    const removed = li.classList.toggle('removed');
+    const key = phrase.trim().toLowerCase();
+    const rest = deck.phrases.filter((p) => p.trim().toLowerCase() !== key);
+    store.updateDeck(deck.id, { phrases: removed ? rest : [...rest, phrase] });
+    phrases = playable(deck);
+    game.all = phrases;
+    center.querySelector('#again').disabled = phrases.length < 3;
   }
 
   function fitPhrase() {

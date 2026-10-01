@@ -435,6 +435,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .score { font-size: 96px; font-weight: 900; line-height: 1; }
 .summary-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
 .summary-actions .start-btn { margin-top: 0; padding: 12px 24px; font-size: 17px; }
+.results-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.results-hint { margin: 0 0 2px 4px; }
 .results {
   flex: 1;
   list-style: none;
@@ -455,7 +457,15 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   background: rgba(255, 255, 255, 0.08);
   font-size: 17px;
 }
-.results li span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.results li span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.results li.removed { opacity: 0.55; }
+.results li.removed span { text-decoration: line-through; }
+.remove-btn { color: rgba(255, 255, 255, 0.6); padding: 4px; margin: -4px; }
+.remove-btn svg { width: 20px; height: 20px; }
+.undo-btn { display: none; font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.2); }
+.results li.removed .remove-btn { display: none; }
+.results li.removed .undo-btn { display: inline-block; }
+.start-btn:disabled { opacity: 0.4; }
 .results li.ok svg { color: #4fd98a; }
 .results li.pass svg { color: #ff7b72; }
 .results:empty { display: none; }

@@ -1,4 +1,4 @@
-const CACHE = 'czolko-v2';
+const CACHE = 'czolko-v3';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './css/app.css',
